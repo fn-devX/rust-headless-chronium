@@ -11,11 +11,21 @@ async fn main() -> WebDriverResult<()> {
         .expect("failed to start Chromedriver");
 
     let mut caps = DesiredCapabilities::chrome();
-    caps.add_arg("--headless=new")?; // убирает заголовок браузера
+
+    let chrome_options = serde_json::json!({
+        "excludeSwitches": ["enable-automation"],
+        "args": [
+            "--app=https://wikipedia.org",
+            // "--kiosk" попробуйте, этот режим вдруг подойдет
+        ]
+    });
+
+    caps.set_base_capability("goog:chromeOptions", chrome_options)?;
+
 
     let driver = WebDriver::new("http://localhost:9515", caps).await?;
-
     driver.goto("https://wikipedia.org").await?;
+
     let mut current_url = driver.current_url().await?;
 
     let form = driver.find(By::Id("search-form")).await?;
